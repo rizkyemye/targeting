@@ -37,7 +37,6 @@ function switchTab(tabName) {
     const btnCalendar = document.getElementById('btnTabCalendar');
     const btnStudy = document.getElementById('btnTabStudy');
     
-    // Sembunyikan area belajar dan layar selesai jika aktif
     learningArea.style.display = 'none';
     completionScreen.style.display = 'none';
 
@@ -54,7 +53,6 @@ function switchTab(tabName) {
         btnStudy.classList.add('active');
         btnCalendar.classList.remove('active');
         
-        // Reset tampilan menu belajar ke pilihan hari awal
         document.getElementById('studySelectionCard').style.display = 'block';
         document.getElementById('studySessionMenu').style.display = 'none';
         populateDirectStudyDropdown();
@@ -107,14 +105,12 @@ function renderCalendar() {
     const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
     const todayDate = today.getDate();
 
-    // Slot kosong sebelum tanggal 1
     for (let i = 0; i < firstDayIndex; i++) {
         const emptyCell = document.createElement("div");
         emptyCell.className = "day-cell empty";
         daysGrid.appendChild(emptyCell);
     }
 
-    // Tanggal dalam bulan (Non-klik / View Only)
     for (let day = 1; day <= totalDays; day++) {
         const cell = document.createElement("div");
         const sec = getDaySeconds(year, month, day);
@@ -157,7 +153,6 @@ function updateStatsBar() {
         }
     }
 
-    // Hitung total waktu keseluruhan (lifetime) untuk target 20 jam
     let totalLifetimeSeconds = 0;
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -166,19 +161,16 @@ function updateStatsBar() {
         }
     }
 
-    // Target 20 jam = 72000 detik
     const targetSeconds = 20 * 3600;
     let targetPercentage = Math.floor((totalLifetimeSeconds / targetSeconds) * 100);
     if (targetPercentage > 100) targetPercentage = 100;
 
-    // --- HITUNG MUNDUR HARI MENUJU 6 DESEMBER 2026 ---
     const today = new Date();
     const jlptDate = new Date('2026-12-06');
     const diffTime = jlptDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const daysRemaining = diffDays > 0 ? diffDays : 0;
 
-    // Hitung streak konsisten
     let streak = 0;
     let checkDate = new Date();
     while (true) {
@@ -222,30 +214,83 @@ function updateStatsBar() {
     if (jlptCountdownEl) jlptCountdownEl.textContent = daysRemaining;
 }
 
+// --- SISTEM UNLOCK HARIAN (HARI KE-1 DIMULAI TANGGAL 5) ---
+function getMaxUnlockedDay() {
+    const now = new Date();
+    const dateNum = now.getDate();
+    
+    if (dateNum < 5) {
+        return 1;
+    }
+    
+    return dateNum - 4;
+}
+
 // --- STUDY TAB & SESSION LOGIC ---
 function populateDirectStudyDropdown() {
     const selectElement = document.getElementById('directDaySelect');
     if (!selectElement) return;
     selectElement.innerHTML = '';
     
+    const maxUnlocked = getMaxUnlockedDay();
     const days = [...new Set(allData.map(item => item.day))].sort((a, b) => a - b);
+    
     days.forEach(dayNum => {
         const opt = document.createElement('option');
         opt.value = dayNum;
-        opt.textContent = `Hari ke-${dayNum} (${allData.filter(i => i.day === dayNum).length} Kosakata)`;
+        
+        if (dayNum <= maxUnlocked) {
+            opt.textContent = `Hari ke-${dayNum} (${allData.filter(i => i.day === dayNum).length} Kosakata)`;
+        } else {
+            opt.textContent = `🔒 Hari ke-${dayNum} (Terkunci - Buka besok jam 05:00)`;
+            opt.disabled = true;
+        }
         selectElement.appendChild(opt);
     });
 }
 
 function openStudySessions() {
     const selectElement = document.getElementById('directDaySelect');
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
     currentActiveDay = parseInt(selectElement.value);
+
+    if (selectedOption.disabled || currentActiveDay > getMaxUnlockedDay()) {
+        alert("🔒 Hari ini masih terkunci! Sesi baru akan terbuka secara otomatis pada pukul 05:00 pagi.");
+        return;
+    }
 
     document.getElementById('studySelectionCard').style.display = 'none';
     document.getElementById('studySessionMenu').style.display = 'block';
     document.getElementById('studySessionMenuTitle').textContent = `📚 Sesi Belajar Hari ke-${currentActiveDay}`;
 
     updateStudySessionButtonsState(currentActiveDay);
+    
+    // Panggil fungsi untuk menampilkan daftar kosakata hari ini
+    renderDayVocabList(currentActiveDay);
+}
+
+// Fungsi untuk merender daftar kosakata berdasarkan hari yang dipilih
+function renderDayVocabList(dayNum) {
+    const vocabListContainer = document.getElementById('dayVocabList');
+    if (!vocabListContainer) return;
+    vocabListContainer.innerHTML = '';
+
+    const dayItems = allData.filter(item => item.day === dayNum);
+    if (dayItems.length === 0) {
+        vocabListContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">Tidak ada kosakata untuk hari ini.</p>';
+        return;
+    }
+
+    dayItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'vocab-item';
+        div.innerHTML = `
+            <span class="vocab-number">${index + 1}.</span>
+            <span class="vocab-front">${item.front}</span>
+            <span class="vocab-back">${item.back}</span>
+        `;
+        vocabListContainer.appendChild(div);
+    });
 }
 
 function backToStudySelection() {
@@ -270,14 +315,12 @@ function updateStudySessionButtonsState(dayNum) {
     const siangDone = isSessionCompleted(dayNum, 'siang');
     const malamDone = isSessionCompleted(dayNum, 'malam');
 
-    // Sesi Pagi
     const btnPagi = document.getElementById("studyBtnPagi");
     const statusPagi = document.getElementById("studyStatusPagi");
     btnPagi.className = pagiDone ? "session-btn completed" : "session-btn";
     statusPagi.textContent = pagiDone ? "Selesai ✔️" : "Mulai ➔";
     btnPagi.onclick = () => startStudySession('pagi', dayNum);
 
-    // Sesi Siang (Terkunci jika Pagi belum selesai)
     const btnSiang = document.getElementById("studyBtnSiang");
     const statusSiang = document.getElementById("studyStatusSiang");
     if (pagiDone) {
@@ -290,7 +333,6 @@ function updateStudySessionButtonsState(dayNum) {
         btnSiang.onclick = () => alert("Selesaikan Sesi Pagi terlebih dahulu!");
     }
 
-    // Sesi Malam (Terkunci jika Siang belum selesai)
     const btnMalam = document.getElementById("studyBtnMalam");
     const statusMalam = document.getElementById("studyStatusMalam");
     if (siangDone) {
@@ -421,103 +463,4 @@ function rateCard(action) {
     }
 
     updateCard();
-}
-// --- SISTEM UNLOCK HARIAN (RESET JAM 05:00 PAGI) ---
-// --- SISTEM UNLOCK HARIAN (HARI KE-1 DIMULAI TANGGAL 5) ---
-function getMaxUnlockedDay() {
-    const now = new Date();
-    const dateNum = now.getDate();
-    
-    // Jika sebelum tanggal 5, tetap buka Hari ke-1
-    if (dateNum < 5) {
-        return 1;
-    }
-    
-    // Tanggal 5 = Hari 1, Tanggal 6 = Hari 2, dst.
-    return dateNum - 4;
-}
-
-// --- STUDY TAB & SESSION LOGIC ---
-function populateDirectStudyDropdown() {
-    const selectElement = document.getElementById('directDaySelect');
-    if (!selectElement) return;
-    selectElement.innerHTML = '';
-    
-    const maxUnlocked = getMaxUnlockedDay();
-    const days = [...new Set(allData.map(item => item.day))].sort((a, b) => a - b);
-    
-    days.forEach(dayNum => {
-        const opt = document.createElement('option');
-        opt.value = dayNum;
-        
-        if (dayNum <= maxUnlocked) {
-            opt.textContent = `Hari ke-${dayNum} (${allData.filter(i => i.day === dayNum).length} Kosakata)`;
-        } else {
-            opt.textContent = `🔒 Hari ke-${dayNum} (Terkunci - Buka besok jam 05:00)`;
-            opt.disabled = true; // Mengunci pilihan di dropdown
-        }
-        selectElement.appendChild(opt);
-    });
-}
-
-function openStudySessions() {
-    const selectElement = document.getElementById('directDaySelect');
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    currentActiveDay = parseInt(selectElement.value);
-
-    // Validasi ketat: cek apakah opsi tersebut disabled atau melebihi hari yang terbuka
-    if (selectedOption.disabled || currentActiveDay > getMaxUnlockedDay()) {
-        alert("🔒 Hari ini masih terkunci! Sesi baru akan terbuka secara otomatis pada pukul 05:00 pagi.");
-        return;
-    }
-
-    document.getElementById('studySelectionCard').style.display = 'none';
-    document.getElementById('studySessionMenu').style.display = 'block';
-    document.getElementById('studySessionMenuTitle').textContent = `📚 Sesi Belajar Hari ke-${currentActiveDay}`;
-
-    updateStudySessionButtonsState(currentActiveDay);
-    
-function openStudySessions() {
-    const selectElement = document.getElementById('directDaySelect');
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    currentActiveDay = parseInt(selectElement.value);
-
-    // Validasi ketat: cek apakah opsi tersebut disabled atau melebihi hari yang terbuka
-    if (selectedOption.disabled || currentActiveDay > getMaxUnlockedDay()) {
-        alert("🔒 Hari ini masih terkunci! Sesi baru akan terbuka secara otomatis pada pukul 05:00 pagi.");
-        return;
-    }
-
-    document.getElementById('studySelectionCard').style.display = 'none';
-    document.getElementById('studySessionMenu').style.display = 'block';
-    document.getElementById('studySessionMenuTitle').textContent = `📚 Sesi Belajar Hari ke-${currentActiveDay}`;
-
-    updateStudySessionButtonsState(currentActiveDay);
-    
-    // Panggil fungsi untuk menampilkan daftar kosakata hari ini
-    renderDayVocabList(currentActiveDay);
-}
-
-// TAMBAHAN: Fungsi untuk merender daftar kosakata berdasarkan hari yang dipilih
-function renderDayVocabList(dayNum) {
-    const vocabListContainer = document.getElementById('dayVocabList');
-    if (!vocabListContainer) return;
-    vocabListContainer.innerHTML = '';
-
-    const dayItems = allData.filter(item => item.day === dayNum);
-    if (dayItems.length === 0) {
-        vocabListContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">Tidak ada kosakata untuk hari ini.</p>';
-        return;
-    }
-
-    dayItems.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'vocab-item';
-        div.innerHTML = `
-            <span class="vocab-number">${index + 1}.</span>
-            <span class="vocab-front">${item.front}</span>
-            <span class="vocab-back">${item.back}</span>
-        `;
-        vocabListContainer.appendChild(div);
-    });
 }
