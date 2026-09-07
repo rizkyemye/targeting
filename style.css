@@ -1132,43 +1132,41 @@ body {
     border-color: #f5d0fe;
 }
 /* --- DAFTAR KOSAKATA DI MENU SESI --- */
+/* --- PREVIEW & DAFTAR KOSAKATA --- */
 .vocab-list-scroll {
-    max-height: 280px;
+    max-height: 200px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding-right: 4px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px;
 }
 
 .vocab-item {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 0.9rem;
-    transition: background 0.2s;
-}
-
-.vocab-item:hover {
-    background: #f1f5f9;
+    font-size: 0.85rem;
 }
 
 .vocab-number {
     color: #94a3b8;
-    font-size: 0.8rem;
     font-weight: 600;
-    min-width: 24px;
+    min-width: 20px;
 }
 
 .vocab-front {
     font-weight: 700;
     color: #0f172a;
-    font-size: 1rem;
-    min-width: 90px;
+    min-width: 80px;
 }
 
 .vocab-back {
