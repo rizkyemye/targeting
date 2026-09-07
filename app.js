@@ -476,7 +476,7 @@ function openStudySessions() {
     document.getElementById('studySessionMenuTitle').textContent = `📚 Sesi Belajar Hari ke-${currentActiveDay}`;
 
     updateStudySessionButtonsState(currentActiveDay);
-}
+    
 function openStudySessions() {
     const selectElement = document.getElementById('directDaySelect');
     const selectedOption = selectElement.options[selectElement.selectedIndex];
