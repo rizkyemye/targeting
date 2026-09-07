@@ -1,10 +1,11 @@
 let allQuizData = [];
-let daySessions = [];       // Array menampung 8 sesi (tiap sesi ~7-8 soal)
-let currentSessionIdx = 0;  // Indeks sesi saat ini
+let daySessions = [];       
+let currentSessionIdx = 0;  
 let currentSessionQuestions = [];
 let currentQuestionIndex = 0;
 let correctCount = 0;
 let questionStartTime = 0;
+let selectedDay = null;
 
 // User Stats (EXP & Level)
 let userExp = parseInt(localStorage.getItem('user_exp')) || 0;
@@ -40,6 +41,11 @@ function populateQuizDayDropdown() {
     const maxUnlocked = getMaxUnlockedDay();
     const days = [...new Set(allQuizData.map(item => item.day))].sort((a, b) => a - b);
     
+    // Ambil daftar hari yang sudah selesai total dan hari yang sedang berlangsung
+    const completedDays = JSON.parse(localStorage.getItem('completed_quiz_days')) || [];
+    const savedDay = localStorage.getItem('saved_quiz_day');
+    const savedSessionIdx = parseInt(localStorage.getItem('saved_session_idx')) || 0;
+    
     if (days.length === 0) {
         const opt = document.createElement('option');
         opt.textContent = "Tidak ada data hari tersedia";
@@ -48,16 +54,22 @@ function populateQuizDayDropdown() {
     }
 
     days.forEach(dayNum => {
-        const count = allQuizData.filter(i => i.day === dayNum).length;
+        const count = allQuizData.filter(i => item => item.day === dayNum).length; // perbaikan filter count
+        const actualCount = allQuizData.filter(i => i.day === dayNum).length;
         const opt = document.createElement('option');
         opt.value = dayNum;
         
-        if (dayNum <= maxUnlocked) {
-            opt.textContent = `Hari ke-${dayNum} (${count} Kosakata)`;
-        } else {
+        if (dayNum > getMaxUnlockedDay()) {
             opt.textContent = `🔒 Hari ke-${dayNum} (Terkunci)`;
             opt.disabled = true;
+        } else if (completedDays.includes(dayNum)) {
+            opt.textContent = `✅ Hari ke-${dayNum} (${actualCount} Kosakata) - Selesai`;
+        } else if (savedDay && parseInt(savedDay) === dayNum) {
+            opt.textContent = `⏳ Hari ke-${dayNum} (${actualCount} Kosakata) - Sesi ${savedSessionIdx + 1}/8 (Berlangsung)`;
+        } else {
+            opt.textContent = `Hari ke-${dayNum} (${actualCount} Kosakata)`;
         }
+        
         selectElement.appendChild(opt);
     });
 }
@@ -65,7 +77,7 @@ function populateQuizDayDropdown() {
 function startQuiz() {
     const selectElement = document.getElementById('quizDaySelect');
     const selectedOption = selectElement.options[selectElement.selectedIndex];
-    const selectedDay = parseInt(selectElement.value);
+    selectedDay = parseInt(selectElement.value);
     
     if (selectedOption.disabled || selectedDay > getMaxUnlockedDay()) {
         alert("🔒 Quiz untuk hari ini masih terkunci!");
@@ -78,17 +90,37 @@ function startQuiz() {
         return;
     }
 
-    // Bagi kosakata menjadi 8 sesi secara merata dan diacak
-    daySessions = [];
-    let shuffledDayData = shuffleArray([...dayData]);
-    const chunkSize = Math.ceil(shuffledDayData.length / 8);
-    
-    for (let i = 0; i < shuffledDayData.length; i += chunkSize) {
-        daySessions.push(shuffledDayData.slice(i, i + chunkSize));
-    }
+    const savedDay = localStorage.getItem('saved_quiz_day');
+    const savedSessionIdx = parseInt(localStorage.getItem('saved_session_idx'));
+    const savedDaySessions = JSON.parse(localStorage.getItem('saved_day_sessions'));
+    const savedCorrectCount = parseInt(localStorage.getItem('saved_correct_count'));
 
-    currentSessionIdx = 0;
-    correctCount = 0;
+    // Jika ada progress tersimpan yang belum selesai untuk hari ini
+    if (savedDay && parseInt(savedDay) === selectedDay && savedDaySessions) {
+        daySessions = savedDaySessions;
+        currentSessionIdx = savedSessionIdx;
+        correctCount = isNaN(savedCorrectCount) ? 0 : savedCorrectCount;
+        
+        alert(`Melanjutkan progress di Sesi ${currentSessionIdx + 1}!`);
+    } else {
+        // Mulai sesi baru (jika mau diulang dari awal)
+        daySessions = [];
+        let shuffledDayData = shuffleArray([...dayData]);
+        const chunkSize = Math.ceil(shuffledDayData.length / 8);
+        
+        for (let i = 0; i < shuffledDayData.length; i += chunkSize) {
+            daySessions.push(shuffledDayData.slice(i, i + chunkSize));
+        }
+
+        currentSessionIdx = 0;
+        correctCount = 0;
+        
+        // Hapus data paused lama jika ada, tapi biarkan status completed tetap aman
+        localStorage.removeItem('saved_quiz_day');
+        localStorage.removeItem('saved_session_idx');
+        localStorage.removeItem('saved_day_sessions');
+        localStorage.removeItem('saved_correct_count');
+    }
 
     document.getElementById('quizSelectionCard').style.display = 'none';
     document.getElementById('quizBreakScreen').style.display = 'none';
@@ -103,7 +135,6 @@ function loadCurrentSession() {
         finishQuizCompletion();
         return;
     }
-    // Ambil soal sesi saat ini dan acak
     currentSessionQuestions = shuffleArray([...daySessions[currentSessionIdx]]);
     currentQuestionIndex = 0;
     loadQuizQuestion();
@@ -111,7 +142,6 @@ function loadCurrentSession() {
 
 function loadQuizQuestion() {
     if (currentQuestionIndex >= currentSessionQuestions.length) {
-        // Sesi ini selesai, panggil layar rehat/jeda sebelum lanjut sesi berikutnya
         triggerSessionBreak();
         return;
     }
@@ -153,13 +183,12 @@ function selectQuizAnswer(buttonElement, selectedAnswer, correctAnswer) {
         buttonElement.classList.add('correct');
         correctCount++;
 
-        // Sistem EXP berdasarkan kecepatan jawab
         if (answerDuration <= 2) {
-            addExp(10); // 0-2 detik: +10 EXP
+            addExp(10); 
         } else if (answerDuration <= 5) {
-            addExp(5);  // 2-5 detik: +5 EXP
+            addExp(5);  
         } else {
-            addExp(2);  // 6-20 detik: +2 EXP
+            addExp(2);  
         }
     } else {
         buttonElement.classList.add('wrong');
@@ -170,7 +199,6 @@ function selectQuizAnswer(buttonElement, selectedAnswer, correctAnswer) {
         });
     }
 
-    // Jeda 1.2 detik sebelum lanjut ke soal berikutnya dalam sesi ini
     setTimeout(() => {
         currentQuestionIndex++;
         loadQuizQuestion();
@@ -180,9 +208,15 @@ function selectQuizAnswer(buttonElement, selectedAnswer, correctAnswer) {
 function triggerSessionBreak() {
     document.getElementById('quizArea').style.display = 'none';
     
+    // Simpan progress sesi saat rehat
+    localStorage.setItem('saved_quiz_day', selectedDay);
+    localStorage.setItem('saved_session_idx', currentSessionIdx);
+    localStorage.setItem('saved_day_sessions', JSON.stringify(daySessions));
+    localStorage.setItem('saved_correct_count', correctCount);
+
     const breakTextEl = document.getElementById('breakText');
     if (currentSessionIdx < daySessions.length - 1) {
-        breakTextEl.innerHTML = `☕ Sesi ${currentSessionIdx + 1} Selesai!<br>Ambil napas sejenak sebelum lanjut ke Sesi ${currentSessionIdx + 2}.`;
+        breakTextEl.innerHTML = `☕ Sesi ${currentSessionIdx + 1} Selesai!<br>Progress aman tersimpan. Kamu bisa lanjut atau kembali ke beranda.`;
     } else {
         breakTextEl.innerHTML = `☕ Sesi terakhir selesai!<br>Siap-siap melihat hasil akhir kuis hari ini.`;
     }
@@ -194,6 +228,8 @@ function resumeQuizAfterBreak() {
     document.getElementById('quizBreakScreen').style.display = 'none';
     currentSessionIdx++;
     
+    localStorage.setItem('saved_session_idx', currentSessionIdx);
+    
     if (currentSessionIdx >= daySessions.length) {
         finishQuizCompletion();
     } else {
@@ -202,7 +238,24 @@ function resumeQuizAfterBreak() {
     }
 }
 
+function goHomeFromBreak() {
+    window.location.href = 'index.html';
+}
+
 function finishQuizCompletion() {
+    // Tandai hari ini sebagai hari yang sudah selesai secara permanen
+    let completedDays = JSON.parse(localStorage.getItem('completed_quiz_days')) || [];
+    if (!completedDays.includes(selectedDay)) {
+        completedDays.push(selectedDay);
+        localStorage.setItem('completed_quiz_days', JSON.stringify(completedDays));
+    }
+    
+    // Hapus temporary saved ongoing karena sudah selesai total
+    localStorage.removeItem('saved_quiz_day');
+    localStorage.removeItem('saved_session_idx');
+    localStorage.removeItem('saved_day_sessions');
+    localStorage.removeItem('saved_correct_count');
+    
     document.getElementById('quizArea').style.display = 'none';
     document.getElementById('quizBreakScreen').style.display = 'none';
     document.getElementById('quizCompletionScreen').style.display = 'block';
@@ -211,7 +264,7 @@ function finishQuizCompletion() {
     document.getElementById('quizResultText').innerHTML = `
         🎉 Kuis Selesai!<br>
         Jawaban Benar: <b>${correctCount} / ${totalQuestions}</b><br>
-        Semua sesi hari ini telah berhasil diselesaikan!
+        Hari ke-${selectedDay} resmi ditandai **Selesai (✅)**!
     `;
 }
 
@@ -219,6 +272,7 @@ function exitQuiz() {
     document.getElementById('quizArea').style.display = 'none';
     document.getElementById('quizBreakScreen').style.display = 'none';
     document.getElementById('quizSelectionCard').style.display = 'block';
+    populateQuizDayDropdown();
 }
 
 function backToQuizSelection() {
