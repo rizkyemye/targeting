@@ -65,9 +65,11 @@ function onDayDropdownChange() {
     
     previewContainer.innerHTML = '';
 
-    const dayItems = allData.filter(item => item.day === selectedDay);
+    // Gunakan Number() agar aman jika item.day di JSON bertipe string ("1")
+    const dayItems = allData.filter(item => Number(item.day) === selectedDay);
+    
     if (dayItems.length === 0) {
-        previewContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">Tidak ada kosakata.</p>';
+        previewContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem; padding: 10px;">Tidak ada kosakata untuk hari ini.</p>';
         return;
     }
 
