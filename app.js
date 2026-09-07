@@ -477,3 +477,47 @@ function openStudySessions() {
 
     updateStudySessionButtonsState(currentActiveDay);
 }
+function openStudySessions() {
+    const selectElement = document.getElementById('directDaySelect');
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    currentActiveDay = parseInt(selectElement.value);
+
+    // Validasi ketat: cek apakah opsi tersebut disabled atau melebihi hari yang terbuka
+    if (selectedOption.disabled || currentActiveDay > getMaxUnlockedDay()) {
+        alert("🔒 Hari ini masih terkunci! Sesi baru akan terbuka secara otomatis pada pukul 05:00 pagi.");
+        return;
+    }
+
+    document.getElementById('studySelectionCard').style.display = 'none';
+    document.getElementById('studySessionMenu').style.display = 'block';
+    document.getElementById('studySessionMenuTitle').textContent = `📚 Sesi Belajar Hari ke-${currentActiveDay}`;
+
+    updateStudySessionButtonsState(currentActiveDay);
+    
+    // Panggil fungsi untuk menampilkan daftar kosakata hari ini
+    renderDayVocabList(currentActiveDay);
+}
+
+// TAMBAHAN: Fungsi untuk merender daftar kosakata berdasarkan hari yang dipilih
+function renderDayVocabList(dayNum) {
+    const vocabListContainer = document.getElementById('dayVocabList');
+    if (!vocabListContainer) return;
+    vocabListContainer.innerHTML = '';
+
+    const dayItems = allData.filter(item => item.day === dayNum);
+    if (dayItems.length === 0) {
+        vocabListContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">Tidak ada kosakata untuk hari ini.</p>';
+        return;
+    }
+
+    dayItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'vocab-item';
+        div.innerHTML = `
+            <span class="vocab-number">${index + 1}.</span>
+            <span class="vocab-front">${item.front}</span>
+            <span class="vocab-back">${item.back}</span>
+        `;
+        vocabListContainer.appendChild(div);
+    });
+}
