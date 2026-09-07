@@ -139,7 +139,44 @@
                 <button class="btn-easy" onclick="rateCard('easy')">Mudah ✔️</button>
             </div>
         </div>
+<!-- Menu Sesi (Pagi, Siang, Malam) per Hari -->
+            <div id="studySessionMenu" class="session-menu-card" style="display: none;">
+                <div class="session-header">
+                    <button class="back-calendar-btn" onclick="backToStudySelection()">⬅️ Pilih Hari Lain</button>
+                    <h3 id="studySessionMenuTitle">Sesi Belajar Hari ke-X</h3>
+                </div>
+                <div class="session-buttons-list">
+                    <button id="studyBtnPagi" class="session-btn">
+                        <div class="session-info">
+                            <span class="session-title">☀️ Sesi Pagi</span>
+                            <span class="session-desc">Bagian 1</span>
+                        </div>
+                        <span id="studyStatusPagi" class="status-badge">Mulai ➔</span>
+                    </button>
+                    <button id="studyBtnSiang" class="session-btn">
+                        <div class="session-info">
+                            <span class="session-title">🌤️ Sesi Siang</span>
+                            <span class="session-desc">Bagian 2</span>
+                        </div>
+                        <span id="studyStatusSiang" class="status-badge">Mulai ➔</span>
+                    </button>
+                    <button id="studyBtnMalam" class="session-btn">
+                        <div class="session-info">
+                            <span class="session-title">🌙 Sesi Malam</span>
+                            <span class="session-desc">Bagian 3</span>
+                        </div>
+                        <span id="studyStatusMalam" class="status-badge">Mulai ➔</span>
+                    </button>
+                </div>
 
+                <!-- TAMBAHAN: Daftar Kosakata Hari Ini -->
+                <div class="day-vocab-list-container" style="margin-top: 24px;">
+                    <h4 style="margin-bottom: 12px; font-size: 1.05rem; color: #1e293b;">📖 Daftar Kosakata Hari Ini:</h4>
+                    <div id="dayVocabList" class="vocab-list-scroll">
+                        <!-- Diisi otomatis via JavaScript -->
+                    </div>
+                </div>
+            </div>
         <!-- SCREEN SELESAI -->
         <div class="completion-screen" id="completionScreen" style="display: none; margin-top: 20px;">
             <div class="completion-card">
