@@ -29,7 +29,59 @@ fetch('data.json')
     .catch(error => {
         console.error("Error loading data.json:", error);
     });
+function populateDirectStudyDropdown() {
+    const selectElement = document.getElementById('directDaySelect');
+    if (!selectElement) return;
+    selectElement.innerHTML = '';
+    
+    const maxUnlocked = getMaxUnlockedDay();
+    const days = [...new Set(allData.map(item => item.day))].sort((a, b) => a - b);
+    
+    days.forEach(dayNum => {
+        const opt = document.createElement('option');
+        opt.value = dayNum;
+        
+        if (dayNum <= maxUnlocked) {
+            opt.textContent = `Hari ke-${dayNum} (${allData.filter(i => i.day === dayNum).length} Kosakata)`;
+        } else {
+            opt.textContent = `🔒 Hari ke-${dayNum} (Terkunci - Buka besok jam 05:00)`;
+            opt.disabled = true;
+        }
+        selectElement.appendChild(opt);
+    });
 
+    // Panggil preview untuk hari yang pertama kali terpilih
+    onDayDropdownChange();
+}
+
+// TAMBAHAN: Fungsi untuk memperbarui preview kosakata saat dropdown diganti
+function onDayDropdownChange() {
+    const selectElement = document.getElementById('directDaySelect');
+    if (!selectElement) return;
+    
+    const selectedDay = parseInt(selectElement.value);
+    const previewContainer = document.getElementById('previewVocabList');
+    if (!previewContainer) return;
+    
+    previewContainer.innerHTML = '';
+
+    const dayItems = allData.filter(item => item.day === selectedDay);
+    if (dayItems.length === 0) {
+        previewContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem;">Tidak ada kosakata.</p>';
+        return;
+    }
+
+    dayItems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'vocab-item';
+        div.innerHTML = `
+            <span class="vocab-number">${index + 1}.</span>
+            <span class="vocab-front">${item.front}</span>
+            <span class="vocab-back">${item.back}</span>
+        `;
+        previewContainer.appendChild(div);
+    });
+}
 // --- TAB NAVIGATION LOGIC ---
 function switchTab(tabName) {
     const calendarTab = document.getElementById('calendarTabContent');
