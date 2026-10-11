@@ -1,0 +1,16 @@
+{
+  "name": "Ganbatte — Pelacak Belajar",
+  "short_name": "Ganbatte",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F2FF",
+  "theme_color": "#7C5CFF",
+  "lang": "id",
+  "description": "Pelacak belajar harian: target, timer fokus, dan progres.",
+  "icons": [
+    { "src": "ikon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "ikon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

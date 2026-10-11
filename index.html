@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7C5CFF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="ikon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Ganbatte — Pelacak Kebiasaan</title>
+<style>
+:root{
+  --ungu:#7C5CFF; --ungu-tua:#5B3FD9; --ungu-muda:#EDE7FF; --bg:#F5F2FF;
+  --pink:#FF9EC4; --pink-muda:#FFE4EF; --hijau:#4ECB8E; --hijau-muda:#DFF6EA;
+  --oranye:#FFAE57; --oranye-muda:#FFEEDA; --biru:#5AA9F5; --biru-muda:#E1F0FF;
+  --teks:#2B2640; --abu:#8A85A0; --kartu:#fff;
+  --r1:16px; --r2:22px; --r3:28px;
+  --bayang:0 6px 18px rgba(124,92,255,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:Nunito,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  background:var(--bg); color:var(--teks); font-size:15px; line-height:1.45;
+  padding-bottom:112px; overscroll-behavior-y:none;
+}
+#bungkus{max-width:520px;margin:0 auto;padding:18px 16px 0}
+.layar{display:none;animation:masuk .22s ease}
+.layar.aktif{display:block}
+@keyframes masuk{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- header ---------- */
+.kepala{display:flex;align-items:center;gap:12px;margin:4px 0 18px}
+.kepala .teks{flex:1;min-width:0}
+.kepala h1{margin:0;font-size:19px;font-weight:800}
+.kepala p{margin:2px 0 0;font-size:12.5px;color:var(--abu)}
+.avatar{width:46px;height:46px;border-radius:50%;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--ungu),var(--pink));
+  display:flex;align-items:center;justify-content:center;font-size:22px;
+  box-shadow:0 4px 12px rgba(124,92,255,.32)}
+.judul-layar{display:flex;align-items:center;gap:10px;margin:2px 0 16px}
+.judul-layar h1{margin:0;font-size:20px;font-weight:800;flex:1}
+.ikon-bulat{width:38px;height:38px;border-radius:12px;border:0;background:var(--kartu);
+  box-shadow:var(--bayang);font-size:17px;cursor:pointer;display:grid;place-items:center}
+
+/* ---------- kartu ---------- */
+.kartu{background:var(--kartu);border-radius:var(--r2);padding:16px;box-shadow:var(--bayang);margin-bottom:14px}
+.kartu-ungu{background:linear-gradient(135deg,var(--ungu),#9B7BFF);color:#fff}
+.kartu-ungu .kecil{color:rgba(255,255,255,.85)}
+.baris{display:flex;align-items:center;gap:12px}
+.kecil{font-size:12.5px;color:var(--abu)}
+.h2{font-size:15.5px;font-weight:800;margin:20px 0 10px;display:flex;align-items:center}
+.h2 a{margin-left:auto;font-size:12.5px;color:var(--ungu);text-decoration:none;font-weight:700}
+.bar{height:10px;border-radius:99px;background:rgba(255,255,255,.35);overflow:hidden;margin-top:10px}
+.kartu:not(.kartu-ungu) .bar{background:var(--ungu-muda)}
+.bar > i{display:block;height:100%;border-radius:99px;background:#fff;transition:width .35s ease}
+.kartu:not(.kartu-ungu) .bar > i{background:linear-gradient(90deg,var(--ungu),var(--pink))}
+.bar.tipis{height:8px}
+
+/* ---------- daftar tugas ---------- */
+.tugas{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--kartu);
+  border-radius:var(--r1);box-shadow:var(--bayang);margin-bottom:9px;cursor:pointer}
+.tugas .ikon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:0 0 auto}
+.tugas .isi{flex:1;min-width:0}
+.tugas .isi b{display:block;font-size:14.5px;font-weight:700}
+.tugas.selesai .isi b{text-decoration:line-through;color:var(--abu);font-weight:600}
+.cawang{width:26px;height:26px;border-radius:50%;border:2.5px solid #DDD6F5;display:grid;place-items:center;
+  color:transparent;font-size:14px;flex:0 0 auto;transition:.2s}
+.tugas.selesai .cawang{background:var(--ungu);border-color:var(--ungu);color:#fff}
+.kategori-kanji{background:var(--ungu-muda)} .kategori-kosakata{background:var(--hijau-muda)}
+.kategori-bunpou{background:var(--oranye-muda)} .kategori-dengar{background:var(--biru-muda)}
+.kategori-lain{background:var(--pink-muda)}
+
+/* ---------- strip minggu ---------- */
+.strip{display:flex;gap:6px;margin-bottom:14px}
+.strip div{flex:1;text-align:center;padding:9px 0 8px;border-radius:14px;background:var(--kartu);
+  box-shadow:var(--bayang);font-size:11.5px;color:var(--abu);cursor:pointer}
+.strip div b{display:block;font-size:15px;color:var(--teks);font-weight:700;margin-top:2px}
+.strip div.ini{background:linear-gradient(135deg,var(--ungu),#9B7BFF);color:rgba(255,255,255,.9)}
+.strip div.ini b{color:#fff}
+
+/* ---------- fokus ---------- */
+.tab{display:flex;gap:6px;background:var(--ungu-muda);padding:5px;border-radius:99px;margin-bottom:20px}
+.tab button{flex:1;border:0;background:transparent;padding:9px 0;border-radius:99px;font:inherit;
+  font-weight:700;color:var(--abu);cursor:pointer;font-size:13.5px}
+.tab button.aktif{background:#fff;color:var(--ungu);box-shadow:0 2px 8px rgba(124,92,255,.18)}
+.lingkar{position:relative;width:242px;height:242px;margin:6px auto 18px}
+.lingkar svg{transform:rotate(-90deg)}
+.lingkar .tengah{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.maskot{width:96px;height:96px}
+.jam{font-size:38px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.pil{display:block;width:100%;max-width:270px;margin:0 auto;border:0;border-radius:99px;padding:16px 0;
+  font:inherit;font-size:16.5px;font-weight:800;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--ungu),#9B7BFF);box-shadow:0 8px 20px rgba(124,92,255,.35)}
+.pil.abstrak{background:#fff;color:var(--ungu);box-shadow:var(--bayang);margin-top:10px}
+.pil:active{transform:scale(.98)}
+
+/* ---------- progres ---------- */
+.grafik{display:flex;align-items:flex-end;gap:9px;height:132px;margin:6px 0 4px}
+.grafik div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.grafik span{width:100%;border-radius:9px;background:var(--ungu-muda);min-height:5px;transition:height .35s}
+.grafik div.ini span{background:linear-gradient(180deg,var(--pink),var(--ungu))}
+.grafik em{font-size:11px;color:var(--abu);font-style:normal}
+.stat{display:flex;gap:12px;margin-bottom:14px}
+.stat > div{flex:1;background:var(--kartu);border-radius:var(--r2);padding:14px;box-shadow:var(--bayang)}
+.stat b{display:block;font-size:23px;font-weight:800;margin-top:6px}
+.stat .ikon{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:17px}
+.kat{margin-bottom:13px}
+.kat .baris{font-size:14px;font-weight:700}
+.kat .baris em{font-style:normal;margin-left:auto;font-size:13px;color:var(--abu);font-weight:600}
+
+/* ---------- nav bawah ---------- */
+nav.bawah{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;
+  box-shadow:0 -6px 22px rgba(124,92,255,.13);border-radius:24px 24px 0 0;
+  display:flex;align-items:center;justify-content:space-around;
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom))}
+nav.bawah button{border:0;background:transparent;font:inherit;font-size:10.5px;color:var(--abu);
+  display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex:1;font-weight:700}
+nav.bawah button .gbr{font-size:21px;line-height:1}
+nav.bawah button.aktif{color:var(--ungu)}
+nav.bawah .tengah{flex:0 0 auto}
+nav.bawah .tengah button{width:60px;height:60px;margin-top:-30px;border-radius:50%;color:#fff;font-size:30px;
+  background:linear-gradient(135deg,var(--ungu),var(--pink));box-shadow:0 8px 18px rgba(124,92,255,.42);
+  justify-content:center;padding:0}
+nav.bawah .tengah button .gbr{font-size:28px;margin-top:-2px}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(43,38,64,.45);display:none;align-items:flex-end;z-index:40}
+.modal.aktif{display:flex}
+.modal .kotak{background:#fff;width:100%;max-width:520px;margin:0 auto;border-radius:26px 26px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom))}
+.modal h3{margin:0 0 14px;font-size:17px}
+.modal label{display:block;font-size:12.5px;font-weight:700;color:var(--abu);margin:12px 0 6px}
+.modal input,.modal select{width:100%;padding:13px 14px;border-radius:14px;border:2px solid var(--ungu-muda);
+  font:inherit;background:#FBFAFF;color:var(--teks)}
+.modal input:focus,.modal select:focus{outline:0;border-color:var(--ungu)}
+.chip{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip button{border:2px solid var(--ungu-muda);background:#fff;border-radius:99px;padding:8px 14px;
+  font:inherit;font-size:13px;font-weight:700;color:var(--abu);cursor:pointer}
+.chip button.aktif{border-color:var(--ungu);color:var(--ungu);background:var(--ungu-muda)}
+.kutip{background:var(--pink-muda);border-radius:var(--r2);padding:15px 16px;font-size:13.5px;font-style:italic;color:#7A3F58}
+.kutip b{display:block;font-style:normal;font-size:12px;color:#B76A8A;margin-top:6px;font-weight:700}
+.kosong{text-align:center;color:var(--abu);font-size:13.5px;padding:14px}
+.peta{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.peta i{aspect-ratio:1;border-radius:6px;display:block}
+.api{background:var(--oranye-muda);color:#C97A16;font-weight:800}
+.sorot{color:var(--ungu)}
+</style>
+</head>
+<body>
+
+<div id="bungkus">
+
+  <!-- ================= BERANDA ================= -->
+  <section id="layar-beranda" class="layar aktif">
+    <div class="kepala">
+      <div class="teks">
+        <h1 id="sapaan">Halo, リズ！</h1>
+        <p id="tgl-hari-ini">—</p>
+      </div>
+      <div class="avatar">🌸</div>
+    </div>
+
+    <div class="kartu kartu-ungu">
+      <div class="baris">
+        <div style="flex:1">
+          <div class="kecil" style="font-weight:700">Target hari ini</div>
+          <div style="font-size:24px;font-weight:800;margin-top:2px" id="goal-teks">0 / 6 tugas</div>
+        </div>
+        <div class="maskot" id="maskot-beranda"></div>
+      </div>
+      <div class="bar"><i id="goal-bar" style="width:0%"></i></div>
+      <div class="kecil" style="margin-top:9px" id="goal-ket">Ayo mulai satu tugas dulu ✨</div>
+    </div>
+
+    <div class="stat">
+      <div>
+        <div class="ikon" style="background:var(--oranye-muda)">🔥</div>
+        <b id="streak">0 hari</b>
+        <div class="kecil">Streak belajar</div>
+      </div>
+      <div>
+        <div class="ikon" style="background:var(--hijau-muda)">⏱️</div>
+        <b id="menit-hari">0 mnt</b>
+        <div class="kecil">Fokus hari ini</div>
+      </div>
+    </div>
+
+    <div class="kutip" id="kutip">
+      「継続は力なり」<br>Konsisten itu kekuatan.
+      <b id="kutip-bawah"></b>
+    </div>
+
+    <div class="kartu">
+      <div class="baris" style="margin-bottom:10px">
+        <b style="font-size:14.5px">Peta kebiasaan</b>
+        <span class="kecil" style="margin-left:auto" id="peta-ket">35 hari terakhir</span>
+      </div>
+      <div id="peta"></div>
+    </div>
+
+    <div class="h2">Kebiasaan hari ini <a href="#" data-pindah="rencana">Lihat semua</a></div>
+    <div id="daftar-beranda"></div>
+  </section>
+
+  <!-- ================= RENCANA ================= -->
+  <section id="layar-rencana" class="layar">
+    <div class="judul-layar">
+      <h1>Rencana</h1>
+      <button class="ikon-bulat" id="tombol-urut" title="Urutkan">⇅</button>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="h2">Kebiasaan <a href="#" id="tombol-tambah-tugas">+ Tambah</a></div>
+    <div id="daftar-rencana"></div>
+    <div class="kartu" style="display:flex;align-items:center;gap:12px">
+      <div class="maskot" style="width:64px;height:64px" id="maskot-streak"></div>
+      <div>
+        <b style="font-size:15px" id="streak-2">Streak 0 hari</b>
+        <div class="kecil" id="streak-ket">Belajar tiap hari, sekecil apa pun ✨</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOKUS ================= -->
+  <section id="layar-fokus" class="layar">
+    <div class="judul-layar"><h1>Timer Fokus</h1><button class="ikon-bulat" id="tombol-setel">⚙️</button></div>
+    <div class="tab">
+      <button data-durasi="60" class="aktif">60 menit</button>
+      <button data-durasi="25">25 menit</button>
+      <button data-durasi="10">10 menit</button>
+    </div>
+    <div class="lingkar">
+      <svg width="242" height="242">
+        <circle cx="121" cy="121" r="108" fill="none" stroke="#EDE7FF" stroke-width="17"></circle>
+        <circle id="cincin" cx="121" cy="121" r="108" fill="none" stroke="url(#g)" stroke-width="17"
+                stroke-linecap="round" stroke-dasharray="678.6" stroke-dashoffset="0"></circle>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FF9EC4"/><stop offset="100%" stop-color="#7C5CFF"/>
+        </linearGradient></defs>
+      </svg>
+      <div class="tengah">
+        <div id="maskot-fokus" class="maskot"></div>
+        <div class="jam" id="jam-timer">60:00</div>
+        <div class="kecil" id="kata-fokus">Siap fokus?</div>
+      </div>
+    </div>
+    <button class="pil" id="tombol-mulai">Mulai</button>
+    <button class="pil abstrak" id="tombol-reset">Reset</button>
+    <div class="kecil" style="text-align:center;margin-top:16px" id="ket-sesi">Sesi yang selesai otomatis tercatat ✓</div>
+  </section>
+
+  <!-- ================= PROGRES ================= -->
+  <section id="layar-progres" class="layar">
+    <div class="judul-layar"><h1>Progres</h1><button class="ikon-bulat" id="tombol-ulang">↻</button></div>
+    <div class="kartu">
+      <div class="kecil" style="font-weight:700">Waktu belajar minggu ini</div>
+      <div style="font-size:26px;font-weight:800;margin-top:2px" id="total-minggu">0j 0m</div>
+      <div class="grafik" id="grafik"></div>
+    </div>
+    <div class="stat">
+      <div>
+        <div class="ikon" style="background:var(--hijau-muda)">✅</div>
+        <b id="tugas-selesai">0</b>
+        <div class="kecil">Tugas selesai minggu ini</div>
+      </div>
+      <div>
+        <div class="ikon" style="background:var(--ungu-muda)">🎯</div>
+        <b id="jumlah-sesi">0</b>
+        <div class="kecil">Sesi fokus</div>
+      </div>
+    </div>
+    <div class="h2">Kategori</div>
+    <div id="daftar-kategori"></div>
+  </section>
+
+</div>
+
+<nav class="bawah">
+  <button data-layar="beranda" class="aktif"><span class="gbr">🏠</span>Beranda</button>
+  <button data-layar="rencana"><span class="gbr">📅</span>Rencana</button>
+  <div class="tengah"><button id="tombol-plus"><span class="gbr">＋</span></button></div>
+  <button data-layar="fokus"><span class="gbr">⏱️</span>Fokus</button>
+  <button data-layar="progres"><span class="gbr">📊</span>Progres</button>
+</nav>
+
+<div class="modal" id="modal">
+  <div class="kotak">
+    <h3 id="modal-judul">Tambah tugas belajar</h3>
+    <label for="in-judul">Nama tugas</label>
+    <input id="in-judul" placeholder="mis. Tulis kanji 20" autocomplete="off">
+    <label>Kategori</label>
+    <div class="chip" id="chip-kategori"></div>
+    <label for="in-menit">Target waktu (menit)</label>
+    <input id="in-menit" type="number" value="15" min="1" max="300">
+    <button class="pil" id="tombol-simpan" style="margin-top:20px">Simpan tugas</button>
+    <button class="pil abstrak" id="tombol-tutup">Batal</button>
+  </div>
+</div>
+
+<script>
+/* =======================
+   Ganbatte — pelacak belajar
+   Semua data disimpan di HP (localStorage). Nggak ada login, nggak ada server.
+   Aturan hari: ganti hari jam 05:00 waktu Jepang (sama kayak web N3).
+   ======================= */
+
+const JAM_GANTI = 5;
+const KUNCI = 'ganbatte-v1';
+
+const KATEGORI = [
+  { id:'kanji',    nama:'Kanji',    emoji:'🈶', kelas:'kategori-kanji' },
+  { id:'kosakata', nama:'Kosakata', emoji:'📖', kelas:'kategori-kosakata' },
+  { id:'bunpou',   nama:'Bunpou',   emoji:'🧩', kelas:'kategori-bunpou' },
+  { id:'dengar',   nama:'Mendengar',emoji:'🎧', kelas:'kategori-dengar' },
+  { id:'lain',     nama:'Lain-lain',emoji:'✨', kelas:'kategori-lain' },
+];
+
+const KUTIPAN = [
+  ['継続は力なり', 'Konsisten itu kekuatan.'],
+  ['急がば回れ', 'Kalau tergesa-gesa, malah muter — pelan tapi tepat lebih cepat.'],
+  ['七転び八起き', 'Jatuh tujuh kali, bangkit delapan kali.'],
+  ['千里の道も一歩から', 'Perjalanan 1000 ri pun dimulai dari satu langkah.'],
+  ['努力に勝る天才なし', 'Tidak ada bakat yang mengalahkan usaha.'],
+  ['塵も積もれば山となる', 'Debu yang menumpuk jadi gunung — satu kanji sehari pun berarti.'],
+];
+
+const TUGAS_AWAL = [
+  { judul:'Belajar Jepang 60 menit',      kategori:'bunpou',   menit:60 },
+  { judul:'Latihan dumbbell',             kategori:'lain',     menit:20 },
+  { judul:'Baca buku Make Time',          kategori:'dengar',   menit:15 },
+  { judul:'Bangun paling lambat 06:30',   kategori:'kanji',    menit:5  },
+];
+
+/* ---------- util waktu ---------- */
+function hariAktif(d = new Date()) {              // ganti hari jam 05:00
+  const x = new Date(d.getTime() - JAM_GANTI * 3600 * 1000);
+  return x.toISOString().slice(0, 10);
+}
+const NAMA_HARI = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const NAMA_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function tanggalIndo(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const n = new Date(y, m - 1, d);
+  return NAMA_HARI[n.getDay()] + ', ' + d + ' ' + NAMA_BULAN[m - 1];
+}
+function mundur(hari, n) {
+  const n2 = new Date(hari + 'T12:00:00');
+  n2.setDate(n2.getDate() + n);
+  return n2.toISOString().slice(0, 10);
+}
+
+/* ---------- state ---------- */
+let data = { tugas: [], sesi: [], selesai: {}, setelan: { target: 60 } };
+function muat() {
+  try {
+    const s = localStorage.getItem(KUNCI);
+    if (s) data = Object.assign(data, JSON.parse(s));
+  } catch (e) { console.warn('gagal muat', e); }
+  if (!data.tugas || !data.tugas.length) {
+    data.tugas = TUGAS_AWAL.map((t, i) => Object.assign({ id: 'awal' + i }, t));
+  }
+  if (!data.selesai) data.selesai = {};
+  if (!data.sesi) data.sesi = [];
+}
+function simpan() {
+  try { localStorage.setItem(KUNCI, JSON.stringify(data)); } catch (e) {}
+}
+
+/* ---------- hitungan ---------- */
+function tugasHari() { return data.tugas.map(t => Object.assign({}, t, { beres: (data.selesai[hariAktif() + '|' + t.id] || false) })); }
+function menitHari(iso) { return data.sesi.filter(s => s.hari === iso).reduce((a, s) => a + s.menit, 0); }
+function sesiHari(iso) { return data.sesi.filter(s => s.hari === iso).length; }
+function streak() {
+  let n = 0, h = hariAktif();
+  if (menitHari(h) === 0 && sesiHari(mundur(h, -1)) > 0) h = mundur(h, -1);   // hari ini belum mulai, tetap hitung sampai kemarin
+  while (menitHari(h) > 0) { n++; h = mundur(h, -1); }
+  return n;
+}
+function menitMinggu() {
+  let total = 0, out = [];
+  for (let i = 6; i >= 0; i--) {
+    const h = mundur(hariAktif(), -i), m = menitHari(h);
+    total += m; out.push({ hari: h, menit: m });
+  }
+  return { total, hari: out };
+}
+function streakKebiasaan(id) {
+  let n = 0, h = hariAktif();
+  if (!data.selesai[h + '|' + id] && data.selesai[mundur(h, -1) + '|' + id]) h = mundur(h, -1);
+  while (data.selesai[h + '|' + id] === true) { n++; h = mundur(h, -1); }
+  return n;
+}
+function jumlahCek(h) {
+  return data.tugas.filter(t => data.selesai[h + '|' + t.id]).length;
+}
+function heatmapHTML(hari) {
+  let sel = '';
+  for (let i = 34; i >= 0; i--) {
+    const h = mundur(hari, -i), n = jumlahCek(h), total = data.tugas.length || 1;
+    const p = n / total;
+    const warna = p === 0 ? '#EDE7FF' : (p < .34 ? '#C9B8FF' : (p < .67 ? '#9B7BFF' : (p < 1 ? '#7C5CFF' : '#5B3FD9')));
+    sel += '<i title="' + h + ' · ' + n + '/' + total + '" style="background:' + warna + '"></i>';
+  }
+  return '<div class="peta">' + sel + '</div>'
+    + '<div class="kecil" style="margin-top:7px;display:flex;align-items:center;gap:6px">5 minggu terakhir'
+    + '<span style="margin-left:auto">sedikit</span>'
+    + '<i style="width:11px;height:11px;border-radius:3px;background:#EDE7FF;display:inline-block"></i>'
+    + '<i style="width:11px;height:11px;border-radius:3px;background:#C9B8FF;display:inline-block"></i>'
+    + '<i style="width:11px;height:11px;border-radius:3px;background:#9B7BFF;display:inline-block"></i>'
+    + '<i style="width:11px;height:11px;border-radius:3px;background:#5B3FD9;display:inline-block"></i>'
+    + '<span>semua</span></div>';
+}
+function labelMenit(m) {
+  if (m < 60) return m + ' menit';
+  return Math.floor(m / 60) + 'j ' + (m % 60) + 'm';
+}
+
+/* ---------- maskot (SVG buatan sendiri) ---------- */
+function maskot(warna = '#fff', pipi = '#FFB3CE') {
+  return '<svg viewBox="0 0 100 100" class="maskot" width="100%" height="100%">'
+    + '<ellipse cx="50" cy="86" rx="26" ry="5" fill="rgba(0,0,0,.10)"/>'
+    + '<path d="M22 62c0-19 13-31 28-31s28 12 28 31c0 11-6 15-14 15H36c-8 0-14-4-14-15z" fill="' + warna + '"/>'
+    + '<circle cx="40" cy="56" r="3.4" fill="#3B3357"/><circle cx="60" cy="56" r="3.4" fill="#3B3357"/>'
+    + '<circle cx="41.2" cy="54.8" r="1.2" fill="#fff"/><circle cx="61.2" cy="54.8" r="1.2" fill="#fff"/>'
+    + '<circle cx="33" cy="64" r="4.6" fill="' + pipi + '" opacity=".75"/><circle cx="67" cy="64" r="4.6" fill="' + pipi + '" opacity=".75"/>'
+    + '<path d="M46 65q4 4 8 0" stroke="#3B3357" stroke-width="2.2" fill="none" stroke-linecap="round"/>'
+    + '<path d="M50 31v-8" stroke="#FFD86B" stroke-width="3.4" stroke-linecap="round"/>'
+    + '<path d="M20 24l2.6 5.4 5.4 2.6-5.4 2.6L20 40l-2.6-5.4L12 32l5.4-2.6z" fill="#FFD86B"/>'
+    + '<path d="M80 14l2 4.2 4.2 2-4.2 2L80 26.4l-2-4.2-4.2-2 4.2-2z" fill="#B9A6FF"/>'
+    + '</svg>';
+}
+
+/* ---------- render ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+function render() {
+  const h = hariAktif(), th = tugasHari();
+  const beres = th.filter(t => t.beres).length;
+
+  // beranda
+  $('#sapaan').textContent = 'Halo, リズ！';
+  $('#tgl-hari-ini').textContent = tanggalIndo(h) + ' · 今日も頑張ろう';
+  $('#goal-teks').textContent = beres + ' / ' + th.length + ' tugas';
+  $('#goal-bar').style.width = (th.length ? Math.round(beres / th.length * 100) : 0) + '%';
+  $('#goal-ket').textContent = beres === 0
+    ? 'Ayo mulai satu kebiasaan dulu ✨'
+    : (beres === th.length ? 'Semua beres! 完璧 ✨' : 'Bagus! Sisa ' + (th.length - beres) + ' lagi 💪');
+  $('#streak').textContent = streak() + ' hari';
+  $('#menit-hari').textContent = menitHari(h) + ' mnt';
+  $('#streak-2').textContent = 'Streak ' + streak() + ' hari';
+  $('#streak-ket').textContent = streak() > 0
+    ? 'Jangan putus ya — sekecil apa pun tetap dihitung ✨'
+    : 'Belajar tiap hari, sekecil apa pun ✨';
+  $('#maskot-beranda').innerHTML = maskot('#fff', '#FFC6DA');
+  $('#maskot-streak').innerHTML = maskot('#EDE7FF');
+  $('#maskot-fokus').innerHTML = maskot('#E7DEFF');
+
+  const k = KUTIPAN[Number(h.slice(-2)) % KUTIPAN.length];
+  $('#kutip').innerHTML = '「' + k[0] + '」<br>' + k[1] + '<b>pepatah belajar Jepang</b>';
+
+  // daftar tugas (beranda: 4 pertama, rencana: semua)
+  const kartuTugas = (t, kecil) => {
+    const kt = KATEGORI.find(x => x.id === t.kategori) || KATEGORI[4];
+    return '<div class="tugas' + (t.beres ? ' selesai' : '') + '" data-tugas="' + t.id + '">'
+      + '<div class="ikon ' + kt.kelas + '">' + kt.emoji + '</div>'
+      + '<div class="isi"><b>' + esc(t.judul) + '</b>'
+      + '<span class="kecil">' + kt.nama + ' · ±' + (t.menit || 15) + ' menit'
+      + (streakKebiasaan(t.id) > 1 ? ' · <b class="sorot">🔥 ' + streakKebiasaan(t.id) + ' hari</b>' : '') + '</span></div>'
+      + '<div class="cawang">✓</div></div>';
+  };
+  $('#peta').innerHTML = heatmapHTML(h);
+  $('#daftar-beranda').innerHTML = th.length
+    ? th.slice(0, 5).map(t => kartuTugas(t)).join('')
+    : '<div class="kosong">Belum ada tugas. Tekan ＋ untuk menambah ✨</div>';
+  $('#daftar-rencana').innerHTML = th.length
+    ? th.map(t => kartuTugas(t)).join('')
+    : '<div class="kosong">Belum ada tugas ✨</div>';
+
+  // strip minggu (7 hari terakhir, hari ini di kanan)
+  let strip = '';
+  for (let i = 6; i >= 0; i--) {
+    const hh = mundur(h, -i);
+    const d = new Date(hh + 'T12:00:00');
+    strip += '<div class="' + (i === 0 ? 'ini' : '') + '">' + NAMA_HARI[d.getDay()].slice(0, 3)
+      + '<b>' + d.getDate() + '</b></div>';
+  }
+  $('#strip').innerHTML = strip;
+
+  // progres
+  const m = menitMinggu();
+  $('#total-minggu').textContent = labelMenit(m.total);
+  const maks = Math.max(60, ...m.hari.map(x => x.menit));
+  $('#grafik').innerHTML = m.hari.map((x, i) => {
+    const d = new Date(x.hari + 'T12:00:00');
+    return '<div class="' + (i === 6 ? 'ini' : '') + '"><span style="height:' + Math.max(4, Math.round(x.menit / maks * 100)) + '%"></span>'
+      + '<em>' + NAMA_HARI[d.getDay()].slice(0, 3) + '</em></div>';
+  }).join('');
+  $('#tugas-selesai').textContent = Object.keys(data.selesai).filter(k2 => k2.split('|')[0] >= mundur(h, -6) && data.selesai[k2]).length;
+  $('#jumlah-sesi').textContent = data.sesi.filter(s => s.hari >= mundur(h, -6)).length;
+
+  const perKat = {};
+  data.sesi.filter(s => s.hari >= mundur(h, -6)).forEach(s => { perKat[s.kategori] = (perKat[s.kategori] || 0) + s.menit; });
+  const totalKat = Object.values(perKat).reduce((a, b) => a + b, 0);
+  $('#daftar-kategori').innerHTML = KATEGORI.map(kt => {
+    const v = perKat[kt.id] || 0;
+    const p = totalKat ? Math.round(v / totalKat * 100) : 0;
+    return '<div class="kat"><div class="baris"><span class="ikon ' + kt.kelas + '" style="width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-size:14px">' + kt.emoji + '</span>'
+      + '&nbsp;' + kt.nama + '<em>' + p + '% · ' + labelMenit(v) + '</em></div>'
+      + '<div class="bar tipis" style="background:var(--ungu-muda)"><i style="width:' + p + '%;background:linear-gradient(90deg,var(--ungu),var(--pink))"></i></div></div>';
+  }).join('');
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+/* ---------- pindah layar ---------- */
+function pindah(nama) {
+  if (!document.getElementById('layar-' + nama)) nama = 'beranda';
+  if (location.hash.slice(1) !== nama) history.replaceState(null, '', '#' + nama);
+  $$('.layar').forEach(l => l.classList.toggle('aktif', l.id === 'layar-' + nama));
+  $$('nav.bawah button[data-layar]').forEach(b => b.classList.toggle('aktif', b.dataset.layar === nama));
+  window.scrollTo({ top: 0 });
+}
+
+/* ---------- timer ---------- */
+let durasi = 60 * 60, sisa = durasi, jalan = false, tick = null, kategoriSesi = 'kosakata';
+function tampilTimer() {
+  const mnt = Math.floor(sisa / 60), dtk = sisa % 60;
+  $('#jam-timer').textContent = String(mnt).padStart(2, '0') + ':' + String(dtk).padStart(2, '0');
+  const total = durasi || 1;
+  $('#cincin').setAttribute('stroke-dashoffset', String(678.6 * (1 - sisa / total)));
+  document.title = (jalan ? $('#jam-timer').textContent + ' · ' : '') + 'Ganbatte';
+}
+function mulai() {
+  if (jalan) { pause(); return; }
+  if (sisa <= 0) sisa = durasi;
+  jalan = true; $('#tombol-mulai').textContent = 'Jeda';
+  $('#kata-fokus').textContent = 'Fokus ya… 頑張って！';
+  tick = setInterval(() => {
+    sisa--; tampilTimer();
+    if (sisa <= 0) selesaiSesi();
+  }, 1000);
+}
+function pause() {
+  jalan = false; clearInterval(tick); $('#tombol-mulai').textContent = 'Lanjut';
+  $('#kata-fokus').textContent = 'Jeda dulu ☕';
+}
+function resetTimer() {
+  jalan = false; clearInterval(tick); sisa = durasi;
+  $('#tombol-mulai').textContent = 'Mulai'; $('#kata-fokus').textContent = 'Siap fokus?';
+  tampilTimer();
+}
+function bunyi() {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1174, 1397].forEach((f, i) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = f; o.type = 'sine'; o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0.0001, ac.currentTime + i * 0.28);
+      g.gain.exponentialRampToValueAtTime(0.25, ac.currentTime + i * 0.28 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + i * 0.28 + 0.26);
+      o.start(ac.currentTime + i * 0.28); o.stop(ac.currentTime + i * 0.28 + 0.27);
+    });
+  } catch (e) {}
+  if (navigator.vibrate) navigator.vibrate([200, 90, 200]);
+}
+function selesaiSesi() {
+  clearInterval(tick); jalan = false;
+  const menit = Math.round(durasi / 60);
+  data.sesi.push({ hari: hariAktif(), menit: menit, kategori: kategoriSesi, jam: new Date().toTimeString().slice(0, 5) });
+  simpan(); render(); bunyi(); resetTimer();
+  $('#kata-fokus').textContent = 'Selesai！ お疲れさま ✨';
+  $('#ket-sesi').textContent = 'Tercatat: ' + menit + ' menit (' + (KATEGORI.find(k => k.id === kategoriSesi) || {}).nama + ') ✓';
+}
+
+/* ---------- modal tambah tugas ---------- */
+let kategoriBaru = 'kosakata';
+function bukaModal() {
+  $('#chip-kategori').innerHTML = KATEGORI.map(k =>
+    '<button data-kat="' + k.id + '" class="' + (k.id === kategoriBaru ? 'aktif' : '') + '">' + k.emoji + ' ' + k.nama + '</button>').join('');
+  $('#modal').classList.add('aktif');
+}
+function tutupModal() { $('#modal').classList.remove('aktif'); }
+
+/* ---------- event ---------- */
+document.addEventListener('click', e => {
+  const nav = e.target.closest('nav.bawah button[data-layar]');
+  if (nav) { pindah(nav.dataset.layar); return; }
+  const tuna = e.target.closest('[data-pindah]');
+  if (tuna) { e.preventDefault(); pindah(tuna.dataset.pindah); return; }
+
+  const kartu = e.target.closest('.tugas');
+  if (kartu) {
+    const id = kartu.dataset.tugas, kunci = hariAktif() + '|' + id;
+    data.selesai[kunci] = !data.selesai[kunci];
+    simpan(); render();
+    if (data.selesai[kunci]) bunyi();
+    return;
+  }
+  const chip = e.target.closest('#chip-kategori button');
+  if (chip) {
+    kategoriBaru = chip.dataset.kat;
+    $$('#chip-kategori button').forEach(b => b.classList.toggle('aktif', b === chip));
+    return;
+  }
+  const dur = e.target.closest('.tab button[data-durasi]');
+  if (dur) {
+    $$('.tab button').forEach(b => b.classList.toggle('aktif', b === dur));
+    durasi = Number(dur.dataset.durasi) * 60; resetTimer(); return;
+  }
+  if (e.target.closest('#tombol-plus') || e.target.closest('#tombol-tambah-tugas')) { e.preventDefault(); bukaModal(); return; }
+  if (e.target.closest('#tombol-tutup')) { tutupModal(); return; }
+  if (e.target.closest('#modal') && !e.target.closest('.kotak')) { tutupModal(); return; }
+  if (e.target.closest('#tombol-mulai')) { mulai(); return; }
+  if (e.target.closest('#tombol-reset')) { resetTimer(); return; }
+  if (e.target.closest('#tombol-urut')) {
+    data.tugas.reverse(); simpan(); render(); return;
+  }
+  if (e.target.closest('#tombol-setel')) { pindah('fokus'); return; }
+  if (e.target.closest('#tombol-ulang')) {
+    if (confirm('Hapus semua catatan belajar? (tugas tetap ada)')) {
+      data.sesi = []; data.selesai = {}; simpan(); render();
+    }
+    return;
+  }
+  if (e.target.closest('#tombol-simpan')) {
+    const judul = $('#in-judul').value.trim();
+    if (!judul) { $('#in-judul').focus(); return; }
+    data.tugas.push({ id: 't' + Date.now(), judul: judul, kategori: kategoriBaru, menit: Number($('#in-menit').value) || 15 });
+    simpan(); tutupModal(); $('#in-judul').value = ''; render(); pindah('rencana');
+    return;
+  }
+});
+
+/* ---------- PWA ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+/* ---------- jalan ---------- */
+muat();
+tampilTimer();
+render();
+pindah(location.hash.slice(1) || 'beranda');
+
+/* pemeriksaan cepat (buka console) */
+console.assert(hariAktif(new Date('2026-10-10T04:30:00')) === '2026-10-09', 'ganti hari 05:00 salah');
+console.assert(hariAktif(new Date('2026-10-10T05:00:00')) === '2026-10-10', 'ganti hari 05:00 salah');
+console.assert(mundur('2026-10-10', -7) === '2026-10-03', 'mundur() salah');
+</script>
+</body>
+</html>
