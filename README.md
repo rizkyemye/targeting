@@ -1,2 +1,0 @@
-# targeting
-Belajar N3
